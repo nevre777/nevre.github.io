@@ -471,7 +471,7 @@
 </head>
 <body>
   <div class="header">
-    <div class="logo">💪</div>
+    <div class="logo">WT</div>
     <div>
       <h1>Workout Tracker Pro</h1>
       <p>Track your fitness journey</p>
@@ -513,7 +513,12 @@
       <div id="liftFields" style="display:block">
         <div class="form-group">
           <label for="liftName">Exercise Name</label>
-          <input type="text" id="liftName" placeholder="e.g. Bench Press">
+          <input type="text" id="liftName" placeholder="e.g. Bench Press" list="exerciseHistory">
+          <datalist id="exerciseHistory"></datalist>
+          <div id="lastSessionStats" style="margin-top: 8px; padding: 10px; background: #f0f9ff; border-radius: 6px; border: 1px solid #bfdbfe; display: none;">
+            <strong style="color: #1e40af;">📊 Last Session:</strong>
+            <span id="lastSessionDetails" style="color: #374151; font-size: 14px;"></span>
+          </div>
         </div>
         <div class="form-group">
           <label>Sets</label>
@@ -876,6 +881,9 @@
           document.getElementById('workoutForm').reset();
           document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
+          // Hide last session stats
+          document.getElementById('lastSessionStats').style.display = 'none';
+
           // Reset sets builder
           document.getElementById('setsBuilder').innerHTML = `
             <div class="set-input">
@@ -936,6 +944,111 @@
       loadWorkouts();
       checkConnection();
     }, 30000);
+
+    // ============ EXERCISE HISTORY & LAST SESSION TRACKING ============
+
+    // Load exercise history for autocomplete
+    async function loadExerciseHistoryAutocomplete() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        const exercises = new Set();
+        entries.forEach(entry => {
+          if (entry.type === 'lift' && entry.lift_name) {
+            exercises.add(entry.lift_name);
+          }
+        });
+
+        const datalist = document.getElementById('exerciseHistory');
+        datalist.innerHTML = Array.from(exercises).sort().map(ex =>
+          `<option value="${ex}">`
+        ).join('');
+      } catch (error) {
+        console.error('Error loading exercise history:', error);
+      }
+    }
+
+    // Show last session stats for an exercise
+    async function showLastSessionStats(exerciseName) {
+      const statsDiv = document.getElementById('lastSessionStats');
+      const detailsSpan = document.getElementById('lastSessionDetails');
+
+      if (!exerciseName || exerciseName.trim() === '') {
+        statsDiv.style.display = 'none';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        // Find workouts for this exercise
+        const exerciseWorkouts = entries
+          .filter(e =>
+            e.type === 'lift' &&
+            e.lift_name &&
+            e.lift_name.toLowerCase() === exerciseName.toLowerCase()
+          )
+          .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (exerciseWorkouts.length === 0) {
+          statsDiv.style.display = 'none';
+          return;
+        }
+
+        // Get the last workout
+        const lastWorkout = exerciseWorkouts[0];
+        const sets = lastWorkout.sets || [];
+
+        if (sets.length === 0) {
+          statsDiv.style.display = 'none';
+          return;
+        }
+
+        // Calculate stats
+        const totalSets = sets.length;
+        const totalReps = sets.reduce((sum, set) => sum + set.reps, 0);
+        const totalVolume = sets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+        const maxWeight = Math.max(...sets.map(s => s.weight));
+
+        // Format sets details
+        const setsDetails = sets.map((set, idx) =>
+          `${set.reps} × ${set.weight} lbs`
+        ).join(', ');
+
+        detailsSpan.innerHTML = `
+          <div style="margin-top: 4px;">
+            <div><strong>${formatDate(lastWorkout.date)}</strong> - ${totalSets} sets, ${totalReps} total reps</div>
+            <div style="margin-top: 4px; font-size: 13px;">${setsDetails}</div>
+            <div style="margin-top: 4px; font-size: 13px;">Max: ${maxWeight} lbs • Volume: ${totalVolume.toLocaleString()} lbs${lastWorkout.rpe ? ` • RPE: ${lastWorkout.rpe}` : ''}</div>
+          </div>
+        `;
+
+        statsDiv.style.display = 'block';
+      } catch (error) {
+        console.error('Error loading last session stats:', error);
+        statsDiv.style.display = 'none';
+      }
+    }
+
+    // Add event listener to lift name input
+    document.getElementById('liftName').addEventListener('input', (e) => {
+      const exerciseName = e.target.value;
+      // Debounce the API call
+      clearTimeout(window.exerciseInputTimeout);
+      window.exerciseInputTimeout = setTimeout(() => {
+        showLastSessionStats(exerciseName);
+      }, 500);
+    });
+
+    // Add event listener for datalist selection (immediate update)
+    document.getElementById('liftName').addEventListener('change', (e) => {
+      showLastSessionStats(e.target.value);
+    });
+
+    // Load exercise history on page load
+    loadExerciseHistoryAutocomplete();
 
     // Import Modal Functions
     function showImportModal() {
