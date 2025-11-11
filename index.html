@@ -1,0 +1,2398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workout Tracker Pro</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f0f2f5;
+    }
+
+    /* Header with logo */
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      border-radius: 16px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+      margin-right: 20px;
+      background: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .header p {
+      margin: 5px 0 0;
+      opacity: 0.9;
+      font-size: 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+
+    h2 {
+      color: #1f2937;
+      margin-top: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #4b5563;
+      font-size: 14px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 15px;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    button {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 15px;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background: #4f46e5;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .delete-btn {
+      background: #ef4444;
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .delete-btn:hover {
+      background: #dc2626;
+    }
+
+    .add-set-btn {
+      background: #10b981;
+      margin-top: 12px;
+    }
+
+    .add-set-btn:hover {
+      background: #059669;
+    }
+
+    .remove-set-btn {
+      background: #f59e0b;
+      padding: 4px 10px;
+      font-size: 13px;
+      margin-left: 10px;
+    }
+
+    .entry {
+      background: #f9fafb;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #e5e7eb;
+      transition: background 0.2s;
+    }
+
+    .entry:hover {
+      background: #f3f4f6;
+    }
+
+    .entry-info {
+      flex: 1;
+    }
+
+    .entry-date {
+      color: #6b7280;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .status {
+      padding: 12px 16px;
+      margin: 10px 0;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #93c5fd;
+    }
+
+    .set-input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding: 8px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .set-input input {
+      width: 80px;
+      padding: 6px 8px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #6b7280;
+    }
+
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      opacity: 0.3;
+    }
+
+    /* Notes field */
+    .notes-field {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 15px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Modal styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+      padding: 24px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #6b7280;
+      cursor: pointer;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .close-btn:hover {
+      background: #f3f4f6;
+    }
+
+    pre {
+      margin: 0;
+      font-family: 'Monaco', 'Consolas', monospace;
+    }
+
+    details summary {
+      font-weight: 500;
+    }
+
+    small {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    /* Export/Import buttons */
+    .export-btn {
+      background: #14b8a6;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+
+    .export-btn:hover {
+      background: #0d9488;
+    }
+
+    .import-btn {
+      background: #f59e0b;
+    }
+
+    .import-btn:hover {
+      background: #d97706;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    /* Charts & PR Tracking */
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin: 20px 0;
+    }
+
+    .pr-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .pr-item {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+    }
+
+    .pr-item strong {
+      color: #92400e;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #6366f1;
+      display: block;
+      margin: 5px 0;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: #e5e7eb;
+      color: #374151;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      background: #d1d5db;
+    }
+
+    .filter-btn.active {
+      background: #6366f1;
+      color: white;
+    }
+
+    select.chart-select {
+      padding: 8px 12px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">💪</div>
+    <div>
+      <h1>Workout Tracker Pro</h1>
+      <p>Track your fitness journey</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔌 Connection Status</h2>
+    <div id="status" class="status info">Checking database connection...</div>
+  </div>
+
+  <div class="card">
+    <h2>➕ Add New Workout</h2>
+    <div style="margin-bottom: 20px;">
+      <button type="button" onclick="showImportModal()" style="background: #8b5cf6;">
+        📥 Import or Generate Workout
+      </button>
+    </div>
+    <form id="workoutForm">
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" id="date" required>
+      </div>
+
+      <div class="form-group">
+        <label for="type">Type</label>
+        <select id="type" required>
+          <option value="lift">🏋️ Weight Training</option>
+          <option value="cardio">🏃 Cardio</option>
+          <option value="bjj">🥋 BJJ</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="sessionName">Session Name (optional)</label>
+        <input type="text" id="sessionName" placeholder="e.g. Push Day, Leg Day">
+      </div>
+
+      <div id="liftFields" style="display:block">
+        <div class="form-group">
+          <label for="liftName">Exercise Name</label>
+          <input type="text" id="liftName" placeholder="e.g. Bench Press">
+        </div>
+        <div class="form-group">
+          <label>Sets</label>
+          <div id="setsBuilder">
+            <div class="set-input">
+              <span>Set 1:</span>
+              <input type="number" class="reps" placeholder="Reps" min="1">
+              <span>reps ×</span>
+              <input type="number" class="weight" placeholder="Weight" min="0" step="2.5">
+              <span>lbs</span>
+            </div>
+          </div>
+          <button type="button" onclick="addSet()" class="add-set-btn">+ Add Set</button>
+        </div>
+        <div class="form-group">
+          <label for="rpe">RPE (1-10, optional)</label>
+          <input type="number" id="rpe" min="1" max="10" placeholder="Rate of Perceived Exertion">
+        </div>
+      </div>
+
+      <div id="cardioFields" style="display:none">
+        <div class="form-group">
+          <label for="modality">Activity</label>
+          <input type="text" id="modality" placeholder="e.g. Running, Cycling, Swimming">
+        </div>
+        <div class="form-group">
+          <label for="duration">Duration (minutes)</label>
+          <input type="number" id="duration" placeholder="30" min="1">
+        </div>
+        <div class="form-group">
+          <label for="distance">Distance (optional)</label>
+          <input type="number" id="distance" placeholder="3.5" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+          <label for="avgHr">Average Heart Rate (optional)</label>
+          <input type="number" id="avgHr" placeholder="145" min="40" max="220">
+        </div>
+      </div>
+
+      <div id="bjjFields" style="display:none">
+        <div class="form-group">
+          <label for="technique">Focus/Technique</label>
+          <input type="text" id="technique" placeholder="e.g. Guard passing, Submissions">
+        </div>
+        <div class="form-group">
+          <label for="rounds">Number of Rounds</label>
+          <input type="number" id="rounds" placeholder="5" min="1">
+        </div>
+        <div class="form-group">
+          <label for="roundLength">Round Length (minutes)</label>
+          <input type="number" id="roundLength" placeholder="5" min="1">
+        </div>
+      </div>
+
+      <div class="notes-field">
+        <label for="notes">Notes (optional)</label>
+        <textarea id="notes" placeholder="How did you feel? Any PRs? Things to remember..."></textarea>
+      </div>
+
+      <button type="submit">Add Workout</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>💾 Export / Import Data</h2>
+    <p style="color: #6b7280; margin-bottom: 15px;">Backup your workout data or import from other sources</p>
+
+    <div style="margin-bottom: 20px;">
+      <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 10px;">📤 Export Workouts</h3>
+      <div class="button-group">
+        <button onclick="exportToJSON()" class="export-btn">📄 Export as JSON</button>
+        <button onclick="exportToCSV()" class="export-btn">📊 Export as CSV</button>
+        <button onclick="exportToPDF()" class="export-btn">📑 Export as PDF</button>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 10px;">📥 Import Workouts</h3>
+      <div class="button-group">
+        <div class="file-input-wrapper">
+          <button class="import-btn">📄 Import from CSV</button>
+          <input type="file" id="csvImport" accept=".csv" onchange="importFromCSV(event)">
+        </div>
+        <div class="file-input-wrapper">
+          <button class="import-btn">📄 Import from JSON</button>
+          <input type="file" id="jsonImport" accept=".json" onchange="importFromJSON(event)">
+        </div>
+      </div>
+      <div id="importStatus" style="margin-top: 10px;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏆 Personal Records</h2>
+    <p style="color: #6b7280; margin-bottom: 15px;">Your best lifts and achievements</p>
+
+    <div class="stat-grid" id="prStats">
+      <div class="stat-card">
+        <span class="stat-label">Total PRs</span>
+        <span class="stat-value" id="totalPRs">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">This Month</span>
+        <span class="stat-value" id="monthPRs">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">This Week</span>
+        <span class="stat-value" id="weekPRs">0</span>
+      </div>
+    </div>
+
+    <div id="prList">Loading personal records...</div>
+  </div>
+
+  <div class="card">
+    <h2>📈 Progress Charts</h2>
+    <p style="color: #6b7280; margin-bottom: 15px;">Visualize your fitness journey</p>
+
+    <div style="margin-bottom: 20px;">
+      <label for="chartType" style="display: block; margin-bottom: 8px; font-weight: 500;">Chart Type:</label>
+      <select id="chartType" class="chart-select" onchange="updateCharts()">
+        <option value="weight">Weight Progression (Lifts)</option>
+        <option value="volume">Total Volume (Lifts)</option>
+        <option value="cardio">Cardio Progress</option>
+        <option value="frequency">Workout Frequency</option>
+      </select>
+    </div>
+
+    <div id="exerciseSelectContainer" style="margin-bottom: 20px; display: block;">
+      <label for="exerciseSelect" style="display: block; margin-bottom: 8px; font-weight: 500;">Select Exercise:</label>
+      <select id="exerciseSelect" class="chart-select" onchange="updateCharts()">
+        <option value="">Loading exercises...</option>
+      </select>
+    </div>
+
+    <div class="filter-buttons">
+      <button class="filter-btn active" onclick="setTimeRange('30')">Last 30 Days</button>
+      <button class="filter-btn" onclick="setTimeRange('90')">Last 3 Months</button>
+      <button class="filter-btn" onclick="setTimeRange('180')">Last 6 Months</button>
+      <button class="filter-btn" onclick="setTimeRange('all')">All Time</button>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="progressChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 Recent Workouts</h2>
+    <div id="workoutsList">Loading...</div>
+  </div>
+
+  <script>
+    // API configuration
+    const API_URL = 'http://localhost:3000/api';
+
+    let setCount = 1;
+
+    // Add a new set input
+    function addSet() {
+      setCount++;
+      const setsBuilder = document.getElementById('setsBuilder');
+      const newSet = document.createElement('div');
+      newSet.className = 'set-input';
+      newSet.innerHTML = `
+        <span>Set ${setCount}:</span>
+        <input type="number" class="reps" placeholder="Reps" min="1">
+        <span>reps ×</span>
+        <input type="number" class="weight" placeholder="Weight" min="0" step="2.5">
+        <span>lbs</span>
+        <button type="button" onclick="this.parentElement.remove(); setCount--;" class="remove-set-btn">Remove</button>
+      `;
+      setsBuilder.appendChild(newSet);
+    }
+
+    // Get today's date
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+    // Show/hide form fields based on workout type
+    document.getElementById('type').addEventListener('change', (e) => {
+      const type = e.target.value;
+      document.getElementById('liftFields').style.display = type === 'lift' ? 'block' : 'none';
+      document.getElementById('cardioFields').style.display = type === 'cardio' ? 'block' : 'none';
+      document.getElementById('bjjFields').style.display = type === 'bjj' ? 'block' : 'none';
+    });
+
+    // Check API connection
+    async function checkConnection() {
+      try {
+        const response = await fetch(`${API_URL}/stats`);
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('status').className = 'status success';
+          document.getElementById('status').textContent = `✅ Connected to database (${data.total_workouts} workouts tracked)`;
+        } else {
+          throw new Error('API not responding');
+        }
+      } catch (error) {
+        document.getElementById('status').className = 'status error';
+        document.getElementById('status').textContent = '❌ Cannot connect to database. Server may not be running.';
+      }
+    }
+
+    // Load workouts from API
+    async function loadWorkouts() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        const container = document.getElementById('workoutsList');
+
+        if (entries.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <p>No workouts yet. Start tracking above!</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Show only the 10 most recent
+        const recent = entries.slice(0, 10);
+
+        container.innerHTML = recent.map(entry => {
+          const icon = entry.type === 'lift' ? '🏋️' : entry.type === 'cardio' ? '🏃' : '🥋';
+          return `
+            <div class="entry">
+              <div class="entry-info">
+                <strong>${icon} ${getEntryTitle(entry)}</strong>
+                <div class="entry-date">${formatDate(entry.date)} ${entry.session_name ? `• ${entry.session_name}` : ''}</div>
+                <div style="color: #6b7280; font-size: 14px; margin-top: 4px;">
+                  ${getEntryDetails(entry)}
+                  ${entry.notes ? `<br><em>${entry.notes}</em>` : ''}
+                </div>
+              </div>
+              <button class="delete-btn" onclick="deleteEntry(${entry.id})">Delete</button>
+            </div>
+          `;
+        }).join('');
+
+      } catch (error) {
+        console.error('Error loading workouts:', error);
+        document.getElementById('workoutsList').innerHTML = '<p style="color: #ef4444;">Error loading workouts</p>';
+      }
+    }
+
+    // Format date nicely
+    function formatDate(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Yesterday';
+      }
+
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+
+    // Get entry title
+    function getEntryTitle(entry) {
+      if (entry.type === 'lift') {
+        return entry.lift_name || 'Weight Training';
+      } else if (entry.type === 'cardio') {
+        return entry.modality || 'Cardio';
+      } else if (entry.type === 'bjj') {
+        return entry.technique || 'BJJ Training';
+      }
+      return entry.type.toUpperCase();
+    }
+
+    // Get display details for an entry
+    function getEntryDetails(entry) {
+      if (entry.type === 'lift') {
+        const sets = entry.sets || [];
+        const totalVolume = sets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+        let details = `${sets.length} sets`;
+        if (totalVolume > 0) details += ` • ${totalVolume.toLocaleString()} lbs total`;
+        if (entry.rpe) details += ` • RPE ${entry.rpe}`;
+        return details;
+      } else if (entry.type === 'cardio') {
+        let details = `${entry.duration || 0} minutes`;
+        if (entry.distance) details += ` • ${entry.distance} ${entry.distance_unit || 'miles'}`;
+        if (entry.avg_hr) details += ` • ${entry.avg_hr} bpm`;
+        return details;
+      } else if (entry.type === 'bjj') {
+        return `${entry.rounds || 0} rounds × ${entry.round_length || 5} minutes`;
+      }
+      return '';
+    }
+
+    // Handle form submission
+    document.getElementById('workoutForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const type = document.getElementById('type').value;
+      const date = document.getElementById('date').value;
+      const sessionName = document.getElementById('sessionName').value;
+      const notes = document.getElementById('notes').value;
+
+      let data = { type, date, session_name: sessionName, notes };
+
+      if (type === 'lift') {
+        data.lift_name = document.getElementById('liftName').value;
+        data.rpe = document.getElementById('rpe').value || null;
+
+        // Collect sets from individual inputs
+        data.sets = [];
+        const setInputs = document.querySelectorAll('.set-input');
+        setInputs.forEach(setDiv => {
+          const reps = setDiv.querySelector('.reps').value;
+          const weight = setDiv.querySelector('.weight').value;
+          if (reps && weight) {
+            data.sets.push({
+              reps: parseInt(reps),
+              weight: parseFloat(weight)
+            });
+          }
+        });
+
+        if (data.sets.length === 0) {
+          alert('Please add at least one set');
+          return;
+        }
+
+        data.unit = 'lbs';
+      } else if (type === 'cardio') {
+        data.modality = document.getElementById('modality').value;
+        data.duration = parseInt(document.getElementById('duration').value) || null;
+        data.distance = parseFloat(document.getElementById('distance').value) || null;
+        data.distance_unit = data.distance ? 'miles' : null;
+        data.avg_hr = parseInt(document.getElementById('avgHr').value) || null;
+      } else if (type === 'bjj') {
+        data.technique = document.getElementById('technique').value;
+        data.rounds = parseInt(document.getElementById('rounds').value) || null;
+        data.round_length = parseInt(document.getElementById('roundLength').value) || 5;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/entries`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          // Reset form
+          document.getElementById('workoutForm').reset();
+          document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+          // Reset sets builder
+          document.getElementById('setsBuilder').innerHTML = `
+            <div class="set-input">
+              <span>Set 1:</span>
+              <input type="number" class="reps" placeholder="Reps" min="1">
+              <span>reps ×</span>
+              <input type="number" class="weight" placeholder="Weight" min="0" step="2.5">
+              <span>lbs</span>
+            </div>
+          `;
+          setCount = 1;
+
+          // Check for PRs
+          await checkForNewPR(data);
+
+          // Reload workouts, PRs, and charts
+          loadWorkouts();
+          checkConnection();
+          calculatePRs();
+          updateCharts();
+        } else {
+          const error = await response.json();
+          alert('Error: ' + error.error);
+        }
+      } catch (error) {
+        alert('Error adding workout: ' + error.message);
+      }
+    });
+
+    // Delete an entry
+    async function deleteEntry(id) {
+      if (!confirm('Delete this workout?')) return;
+
+      try {
+        const response = await fetch(`${API_URL}/entries/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          loadWorkouts();
+          checkConnection();
+          calculatePRs();
+          updateCharts();
+        } else {
+          alert('Error deleting workout');
+        }
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    }
+
+    // Initialize
+    checkConnection();
+    loadWorkouts();
+
+    // Refresh every 30 seconds
+    setInterval(() => {
+      loadWorkouts();
+      checkConnection();
+    }, 30000);
+
+    // Import Modal Functions
+    function showImportModal() {
+      document.getElementById('importModal').style.display = 'flex';
+      document.getElementById('importDate').value = document.getElementById('date').value;
+      document.getElementById('importStatus').innerHTML = '';
+
+      // Load saved API key and provider
+      const savedKey = localStorage.getItem('workout_ai_key');
+      const savedProvider = localStorage.getItem('workout_ai_provider') || 'openai';
+      if (savedKey) {
+        document.getElementById('apiKey').value = savedKey;
+      }
+      document.getElementById('aiProvider').value = savedProvider;
+      updateProviderUI();
+    }
+
+    // Update UI based on selected provider
+    function updateProviderUI() {
+      const provider = document.getElementById('aiProvider').value;
+      document.getElementById('customEndpointGroup').style.display =
+        provider === 'custom' ? 'block' : 'none';
+    }
+
+    // Save API settings
+    function saveAPISettings() {
+      const apiKey = document.getElementById('apiKey').value;
+      const provider = document.getElementById('aiProvider').value;
+      if (apiKey) {
+        localStorage.setItem('workout_ai_key', apiKey);
+        localStorage.setItem('workout_ai_provider', provider);
+        if (provider === 'custom') {
+          localStorage.setItem('workout_ai_endpoint', document.getElementById('customEndpoint').value);
+        }
+      }
+    }
+
+    // Generate workout with AI
+    async function generateWithAI() {
+      const apiKey = document.getElementById('apiKey').value;
+      const provider = document.getElementById('aiProvider').value;
+      const prompt = document.getElementById('workoutPrompt').value;
+      const statusDiv = document.getElementById('aiStatus');
+
+      if (!apiKey) {
+        statusDiv.innerHTML = '<p style="color: #ef4444;">Please enter your API key</p>';
+        return;
+      }
+
+      if (!prompt) {
+        statusDiv.innerHTML = '<p style="color: #ef4444;">Please describe the workout you want</p>';
+        return;
+      }
+
+      // Save settings for next time
+      saveAPISettings();
+
+      statusDiv.innerHTML = '<p style="color: #3b82f6;">🤖 Generating workout plan...</p>';
+
+      try {
+        let response;
+        const systemPrompt = `You are a fitness coach. Generate a workout plan in this exact JSON format:
+{
+  "session": "session name",
+  "type": "lift",
+  "exercises": [
+    {
+      "name": "exercise name",
+      "sets": [
+        {"reps": number, "weight": number}
+      ],
+      "rpe": number (1-10, optional)
+    }
+  ],
+  "notes": "optional notes"
+}
+For cardio use: {"type": "cardio", "modality": "activity", "duration": minutes, "distance": number}
+For BJJ use: {"type": "bjj", "technique": "focus", "rounds": number, "round_length": minutes}`;
+
+        if (provider === 'openai') {
+          response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              model: 'gpt-4',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: prompt }
+              ],
+              temperature: 0.7
+            })
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error?.message || 'API request failed');
+          }
+
+          const content = data.choices[0].message.content;
+          // Extract JSON from the response
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            document.getElementById('jsonInput').value = jsonMatch[0];
+            statusDiv.innerHTML = '<p style="color: #10b981;">✅ Workout plan generated! Review below and import.</p>';
+          } else {
+            throw new Error('Could not parse workout plan from response');
+          }
+
+        } else if (provider === 'anthropic') {
+          response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKey,
+              'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+              model: 'claude-3-sonnet-20240229',
+              max_tokens: 1000,
+              messages: [{
+                role: 'user',
+                content: `${systemPrompt}\n\nUser request: ${prompt}`
+              }]
+            })
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error?.message || 'API request failed');
+          }
+
+          const content = data.content[0].text;
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            document.getElementById('jsonInput').value = jsonMatch[0];
+            statusDiv.innerHTML = '<p style="color: #10b981;">✅ Workout plan generated! Review below and import.</p>';
+          } else {
+            throw new Error('Could not parse workout plan from response');
+          }
+
+        } else if (provider === 'custom') {
+          const endpoint = document.getElementById('customEndpoint').value;
+          if (!endpoint) {
+            throw new Error('Please enter custom endpoint URL');
+          }
+
+          // Custom endpoint - adjust this based on your API
+          response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              prompt: `${systemPrompt}\n\n${prompt}`,
+              max_tokens: 1000
+            })
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error('Custom API request failed');
+          }
+
+          // Adjust based on your API's response format
+          document.getElementById('jsonInput').value = data.result || data.text || JSON.stringify(data);
+          statusDiv.innerHTML = '<p style="color: #10b981;">✅ Workout plan generated! Review below and import.</p>';
+        }
+
+      } catch (error) {
+        console.error('AI Generation error:', error);
+        statusDiv.innerHTML = `<p style="color: #ef4444;">❌ Error: ${error.message}</p>`;
+      }
+    }
+
+    // Listen for provider changes
+    document.getElementById('aiProvider').addEventListener('change', updateProviderUI);
+
+    function closeImportModal() {
+      document.getElementById('importModal').style.display = 'none';
+      document.getElementById('jsonInput').value = '';
+      document.getElementById('importStatus').innerHTML = '';
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('importModal').addEventListener('click', (e) => {
+      if (e.target.id === 'importModal') {
+        closeImportModal();
+      }
+    });
+
+    // Import and add workouts immediately
+    async function importWorkout() {
+      const jsonInput = document.getElementById('jsonInput').value;
+      const date = document.getElementById('importDate').value;
+      const statusDiv = document.getElementById('importStatus');
+
+      if (!jsonInput.trim()) {
+        statusDiv.innerHTML = '<p style="color: #ef4444;">Please paste a JSON workout plan</p>';
+        return;
+      }
+
+      if (!date) {
+        statusDiv.innerHTML = '<p style="color: #ef4444;">Please select a date</p>';
+        return;
+      }
+
+      try {
+        const workoutPlan = JSON.parse(jsonInput);
+        statusDiv.innerHTML = '<p style="color: #3b82f6;">Importing workouts...</p>';
+
+        // Handle different workout types
+        if (workoutPlan.type === 'lift' && workoutPlan.exercises) {
+          // Import multiple lift exercises
+          let successCount = 0;
+          let errorCount = 0;
+
+          for (const exercise of workoutPlan.exercises) {
+            const data = {
+              type: 'lift',
+              date: date,
+              session_name: workoutPlan.session || null,
+              notes: exercise.notes || workoutPlan.notes || null,
+              lift_name: exercise.name,
+              sets: exercise.sets || [],
+              unit: exercise.unit || 'lbs',
+              rpe: exercise.rpe || null
+            };
+
+            try {
+              const response = await fetch(`${API_URL}/entries`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+
+              if (response.ok) {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } catch (error) {
+              errorCount++;
+            }
+          }
+
+          statusDiv.innerHTML = `
+            <p style="color: #10b981;">
+              ✅ Import complete! Added ${successCount} exercises.
+              ${errorCount > 0 ? `<br><span style="color: #ef4444;">${errorCount} failed.</span>` : ''}
+            </p>
+          `;
+
+          // Reload workouts and close modal after delay
+          setTimeout(() => {
+            loadWorkouts();
+            calculatePRs();
+            updateCharts();
+            closeImportModal();
+          }, 2000);
+
+        } else if (workoutPlan.type === 'cardio') {
+          // Import single cardio session
+          const data = {
+            type: 'cardio',
+            date: date,
+            session_name: workoutPlan.session || null,
+            notes: workoutPlan.notes || null,
+            modality: workoutPlan.modality,
+            duration: workoutPlan.duration,
+            distance: workoutPlan.distance || null,
+            distance_unit: workoutPlan.distance ? 'miles' : null,
+            avg_hr: workoutPlan.target_hr || workoutPlan.avg_hr || null
+          };
+
+          const response = await fetch(`${API_URL}/entries`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+
+          if (response.ok) {
+            statusDiv.innerHTML = '<p style="color: #10b981;">✅ Cardio workout imported!</p>';
+            setTimeout(() => {
+              loadWorkouts();
+              calculatePRs();
+              updateCharts();
+              closeImportModal();
+            }, 1500);
+          } else {
+            throw new Error('Failed to import');
+          }
+
+        } else if (workoutPlan.type === 'bjj') {
+          // Import BJJ session
+          const data = {
+            type: 'bjj',
+            date: date,
+            session_name: workoutPlan.session || null,
+            notes: workoutPlan.notes || null,
+            technique: workoutPlan.technique,
+            rounds: workoutPlan.rounds,
+            round_length: workoutPlan.round_length || 5
+          };
+
+          const response = await fetch(`${API_URL}/entries`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+
+          if (response.ok) {
+            statusDiv.innerHTML = '<p style="color: #10b981;">✅ BJJ session imported!</p>';
+            setTimeout(() => {
+              loadWorkouts();
+              calculatePRs();
+              updateCharts();
+              closeImportModal();
+            }, 1500);
+          } else {
+            throw new Error('Failed to import');
+          }
+        } else {
+          throw new Error('Invalid workout type or format');
+        }
+
+      } catch (error) {
+        console.error('Import error:', error);
+        statusDiv.innerHTML = `<p style="color: #ef4444;">❌ Error: ${error.message}</p>`;
+      }
+    }
+
+    // Import as template (populates form without saving)
+    function importAsTemplate() {
+      const jsonInput = document.getElementById('jsonInput').value;
+      const statusDiv = document.getElementById('importStatus');
+
+      if (!jsonInput.trim()) {
+        statusDiv.innerHTML = '<p style="color: #ef4444;">Please paste a JSON workout plan</p>';
+        return;
+      }
+
+      try {
+        const workoutPlan = JSON.parse(jsonInput);
+
+        // Set the workout type
+        document.getElementById('type').value = workoutPlan.type;
+        document.getElementById('type').dispatchEvent(new Event('change'));
+
+        // Set session name if provided
+        if (workoutPlan.session) {
+          document.getElementById('sessionName').value = workoutPlan.session;
+        }
+
+        // Set notes if provided
+        if (workoutPlan.notes) {
+          document.getElementById('notes').value = workoutPlan.notes;
+        }
+
+        // Handle different workout types
+        if (workoutPlan.type === 'lift' && workoutPlan.exercises && workoutPlan.exercises[0]) {
+          // Use first exercise as template
+          const firstExercise = workoutPlan.exercises[0];
+          document.getElementById('liftName').value = firstExercise.name;
+
+          if (firstExercise.rpe) {
+            document.getElementById('rpe').value = firstExercise.rpe;
+          }
+
+          // Clear existing sets and add new ones
+          const setsBuilder = document.getElementById('setsBuilder');
+          setsBuilder.innerHTML = '';
+          setCount = 0;
+
+          firstExercise.sets.forEach((set, index) => {
+            setCount++;
+            const setDiv = document.createElement('div');
+            setDiv.className = 'set-input';
+            setDiv.innerHTML = `
+              <span>Set ${setCount}:</span>
+              <input type="number" class="reps" placeholder="Reps" min="1" value="${set.reps}">
+              <span>reps ×</span>
+              <input type="number" class="weight" placeholder="Weight" min="0" step="2.5" value="${set.weight}">
+              <span>lbs</span>
+              ${setCount > 1 ? '<button type="button" onclick="this.parentElement.remove(); setCount--;" class="remove-set-btn">Remove</button>' : ''}
+            `;
+            setsBuilder.appendChild(setDiv);
+          });
+
+        } else if (workoutPlan.type === 'cardio') {
+          document.getElementById('modality').value = workoutPlan.modality || '';
+          document.getElementById('duration').value = workoutPlan.duration || '';
+          document.getElementById('distance').value = workoutPlan.distance || '';
+          document.getElementById('avgHr').value = workoutPlan.target_hr || workoutPlan.avg_hr || '';
+
+        } else if (workoutPlan.type === 'bjj') {
+          document.getElementById('technique').value = workoutPlan.technique || '';
+          document.getElementById('rounds').value = workoutPlan.rounds || '';
+          document.getElementById('roundLength').value = workoutPlan.round_length || 5;
+        }
+
+        statusDiv.innerHTML = '<p style="color: #10b981;">✅ Template loaded! Review and click "Add Workout" to save.</p>';
+
+        // Close modal after a moment
+        setTimeout(() => {
+          closeImportModal();
+        }, 2000);
+
+      } catch (error) {
+        console.error('Template error:', error);
+        statusDiv.innerHTML = `<p style="color: #ef4444;">❌ Error: Invalid JSON format</p>`;
+      }
+    }
+
+    // ============ EXPORT/IMPORT FUNCTIONS ============
+
+    // Export all workouts to JSON
+    async function exportToJSON() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        const dataStr = JSON.stringify(entries, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `workout-data-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showNotification('✅ JSON export complete!', 'success');
+      } catch (error) {
+        console.error('Export error:', error);
+        showNotification('❌ Export failed: ' + error.message, 'error');
+      }
+    }
+
+    // Export all workouts to CSV
+    async function exportToCSV() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        // CSV Headers
+        const headers = [
+          'ID', 'Type', 'Date', 'Session Name', 'Notes',
+          'Lift Name', 'Sets (JSON)', 'Unit', 'RPE',
+          'Modality', 'Duration (min)', 'Distance', 'Distance Unit', 'Avg HR',
+          'Technique', 'Rounds', 'Round Length (min)',
+          'Created At'
+        ];
+
+        // Convert entries to CSV rows
+        const rows = entries.map(entry => {
+          return [
+            entry.id || '',
+            entry.type || '',
+            entry.date || '',
+            entry.session_name || '',
+            entry.notes ? `"${entry.notes.replace(/"/g, '""')}"` : '',
+            entry.lift_name || '',
+            entry.sets ? `"${JSON.stringify(entry.sets).replace(/"/g, '""')}"` : '',
+            entry.unit || '',
+            entry.rpe || '',
+            entry.modality || '',
+            entry.duration || '',
+            entry.distance || '',
+            entry.distance_unit || '',
+            entry.avg_hr || '',
+            entry.technique || '',
+            entry.rounds || '',
+            entry.round_length || '',
+            entry.created_at || ''
+          ].join(',');
+        });
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `workout-data-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showNotification(`✅ CSV export complete! (${entries.length} workouts)`, 'success');
+      } catch (error) {
+        console.error('CSV export error:', error);
+        showNotification('❌ CSV export failed: ' + error.message, 'error');
+      }
+    }
+
+    // Export all workouts to PDF
+    async function exportToPDF() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        let yPos = 20;
+        const pageHeight = doc.internal.pageSize.height;
+        const margin = 15;
+        const lineHeight = 7;
+
+        // Title
+        doc.setFontSize(20);
+        doc.setFont(undefined, 'bold');
+        doc.text('Workout Tracker Pro - Export', margin, yPos);
+        yPos += 10;
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, yPos);
+        yPos += 10;
+
+        doc.text(`Total Workouts: ${entries.length}`, margin, yPos);
+        yPos += 15;
+
+        // Workouts
+        doc.setFontSize(12);
+
+        entries.forEach((entry, index) => {
+          // Check if we need a new page
+          if (yPos > pageHeight - 40) {
+            doc.addPage();
+            yPos = 20;
+          }
+
+          // Workout header
+          doc.setFont(undefined, 'bold');
+          const icon = entry.type === 'lift' ? '🏋️' : entry.type === 'cardio' ? '🏃' : '🥋';
+          doc.text(`${icon} ${getEntryTitle(entry)}`, margin, yPos);
+          yPos += lineHeight;
+
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(10);
+
+          // Date and session
+          doc.text(`Date: ${entry.date}`, margin + 5, yPos);
+          if (entry.session_name) {
+            doc.text(`Session: ${entry.session_name}`, margin + 60, yPos);
+          }
+          yPos += lineHeight;
+
+          // Type-specific details
+          if (entry.type === 'lift') {
+            const sets = entry.sets || [];
+            doc.text(`Sets: ${sets.length}`, margin + 5, yPos);
+            const totalVolume = sets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+            doc.text(`Total Volume: ${totalVolume} lbs`, margin + 60, yPos);
+            yPos += lineHeight;
+
+            sets.forEach((set, idx) => {
+              doc.text(`  Set ${idx + 1}: ${set.reps} reps × ${set.weight} lbs`, margin + 5, yPos);
+              yPos += lineHeight;
+            });
+
+            if (entry.rpe) {
+              doc.text(`RPE: ${entry.rpe}/10`, margin + 5, yPos);
+              yPos += lineHeight;
+            }
+          } else if (entry.type === 'cardio') {
+            doc.text(`Activity: ${entry.modality || 'N/A'}`, margin + 5, yPos);
+            doc.text(`Duration: ${entry.duration || 0} min`, margin + 60, yPos);
+            yPos += lineHeight;
+
+            if (entry.distance) {
+              doc.text(`Distance: ${entry.distance} ${entry.distance_unit || 'miles'}`, margin + 5, yPos);
+              yPos += lineHeight;
+            }
+
+            if (entry.avg_hr) {
+              doc.text(`Avg HR: ${entry.avg_hr} bpm`, margin + 5, yPos);
+              yPos += lineHeight;
+            }
+          } else if (entry.type === 'bjj') {
+            doc.text(`Technique: ${entry.technique || 'N/A'}`, margin + 5, yPos);
+            yPos += lineHeight;
+            doc.text(`Rounds: ${entry.rounds || 0} × ${entry.round_length || 5} min`, margin + 5, yPos);
+            yPos += lineHeight;
+          }
+
+          // Notes
+          if (entry.notes) {
+            doc.setFont(undefined, 'italic');
+            const splitNotes = doc.splitTextToSize(`Notes: ${entry.notes}`, 180);
+            doc.text(splitNotes, margin + 5, yPos);
+            yPos += lineHeight * splitNotes.length;
+            doc.setFont(undefined, 'normal');
+          }
+
+          yPos += 5; // Space between entries
+          doc.setFontSize(12);
+        });
+
+        // Save PDF
+        doc.save(`workout-data-${new Date().toISOString().split('T')[0]}.pdf`);
+        showNotification(`✅ PDF export complete! (${entries.length} workouts)`, 'success');
+      } catch (error) {
+        console.error('PDF export error:', error);
+        showNotification('❌ PDF export failed: ' + error.message, 'error');
+      }
+    }
+
+    // Import workouts from CSV
+    async function importFromCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const text = e.target.result;
+          const lines = text.split('\n');
+
+          // Skip header
+          const dataLines = lines.slice(1).filter(line => line.trim());
+
+          let successCount = 0;
+          let errorCount = 0;
+
+          const statusDiv = document.getElementById('importStatus');
+          statusDiv.innerHTML = '<p style="color: #3b82f6;">Importing workouts from CSV...</p>';
+
+          for (const line of dataLines) {
+            try {
+              const values = parseCSVLine(line);
+
+              if (!values[1] || !values[2]) continue; // Skip if no type or date
+
+              const data = {
+                type: values[1],
+                date: values[2],
+                session_name: values[3] || null,
+                notes: values[4] || null,
+                lift_name: values[5] || null,
+                sets: values[6] ? JSON.parse(values[6]) : null,
+                unit: values[7] || null,
+                rpe: values[8] ? parseInt(values[8]) : null,
+                modality: values[9] || null,
+                duration: values[10] ? parseInt(values[10]) : null,
+                distance: values[11] ? parseFloat(values[11]) : null,
+                distance_unit: values[12] || null,
+                avg_hr: values[13] ? parseInt(values[13]) : null,
+                technique: values[14] || null,
+                rounds: values[15] ? parseInt(values[15]) : null,
+                round_length: values[16] ? parseInt(values[16]) : null
+              };
+
+              const response = await fetch(`${API_URL}/entries`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+
+              if (response.ok) {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } catch (error) {
+              console.error('Error importing line:', error);
+              errorCount++;
+            }
+          }
+
+          statusDiv.innerHTML = `
+            <p style="color: #10b981;">
+              ✅ Import complete! Added ${successCount} workouts.
+              ${errorCount > 0 ? `<br><span style="color: #ef4444;">${errorCount} failed.</span>` : ''}
+            </p>
+          `;
+
+          // Reload workouts
+          setTimeout(() => {
+            loadWorkouts();
+            checkConnection();
+            calculatePRs();
+            updateCharts();
+            statusDiv.innerHTML = '';
+          }, 3000);
+
+        } catch (error) {
+          console.error('CSV import error:', error);
+          document.getElementById('importStatus').innerHTML =
+            `<p style="color: #ef4444;">❌ Import failed: ${error.message}</p>`;
+        }
+      };
+
+      reader.readAsText(file);
+      event.target.value = ''; // Reset file input
+    }
+
+    // Import workouts from JSON
+    async function importFromJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const text = e.target.result;
+          const entries = JSON.parse(text);
+
+          if (!Array.isArray(entries)) {
+            throw new Error('JSON must contain an array of workouts');
+          }
+
+          let successCount = 0;
+          let errorCount = 0;
+
+          const statusDiv = document.getElementById('importStatus');
+          statusDiv.innerHTML = '<p style="color: #3b82f6;">Importing workouts from JSON...</p>';
+
+          for (const entry of entries) {
+            try {
+              // Remove ID and created_at if present (we'll generate new ones)
+              const { id, created_at, ...data } = entry;
+
+              const response = await fetch(`${API_URL}/entries`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+
+              if (response.ok) {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } catch (error) {
+              console.error('Error importing entry:', error);
+              errorCount++;
+            }
+          }
+
+          statusDiv.innerHTML = `
+            <p style="color: #10b981;">
+              ✅ Import complete! Added ${successCount} workouts.
+              ${errorCount > 0 ? `<br><span style="color: #ef4444;">${errorCount} failed.</span>` : ''}
+            </p>
+          `;
+
+          // Reload workouts
+          setTimeout(() => {
+            loadWorkouts();
+            checkConnection();
+            calculatePRs();
+            updateCharts();
+            statusDiv.innerHTML = '';
+          }, 3000);
+
+        } catch (error) {
+          console.error('JSON import error:', error);
+          document.getElementById('importStatus').innerHTML =
+            `<p style="color: #ef4444;">❌ Import failed: ${error.message}</p>`;
+        }
+      };
+
+      reader.readAsText(file);
+      event.target.value = ''; // Reset file input
+    }
+
+    // Helper function to parse CSV line (handles quoted fields)
+    function parseCSVLine(line) {
+      const values = [];
+      let current = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') {
+            current += '"';
+            i++; // Skip next quote
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          values.push(current);
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      values.push(current); // Add last value
+
+      return values;
+    }
+
+    // Helper function to show notifications
+    function showNotification(message, type) {
+      const statusDiv = document.getElementById('status');
+      const originalContent = statusDiv.innerHTML;
+      const originalClass = statusDiv.className;
+
+      statusDiv.className = `status ${type}`;
+      statusDiv.innerHTML = message;
+
+      setTimeout(() => {
+        statusDiv.className = originalClass;
+        statusDiv.innerHTML = originalContent;
+      }, 3000);
+    }
+
+    // ============ PR TRACKING & CHARTS ============
+
+    let progressChart = null;
+    let currentTimeRange = '30'; // days
+    let allWorkouts = [];
+
+    // Calculate Personal Records
+    async function calculatePRs() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+        allWorkouts = entries;
+
+        // Filter only lift entries
+        const liftEntries = entries.filter(e => e.type === 'lift');
+
+        // Group by exercise name
+        const exerciseGroups = {};
+        liftEntries.forEach(entry => {
+          if (!entry.lift_name) return;
+          const name = entry.lift_name.toLowerCase();
+          if (!exerciseGroups[name]) {
+            exerciseGroups[name] = [];
+          }
+          exerciseGroups[name].push(entry);
+        });
+
+        // Calculate PRs for each exercise
+        const prs = [];
+        for (const [exercise, workouts] of Object.entries(exerciseGroups)) {
+          // Find max weight for a single rep
+          let maxWeight = 0;
+          let maxWeightDate = null;
+          let maxWeightWorkout = null;
+
+          // Find max total volume
+          let maxVolume = 0;
+          let maxVolumeDate = null;
+
+          // Find max reps at any weight
+          let maxReps = 0;
+          let maxRepsWeight = 0;
+          let maxRepsDate = null;
+
+          workouts.forEach(workout => {
+            const sets = workout.sets || [];
+            let totalVolume = 0;
+
+            sets.forEach(set => {
+              totalVolume += set.reps * set.weight;
+
+              // Check for max weight
+              if (set.weight > maxWeight) {
+                maxWeight = set.weight;
+                maxWeightDate = workout.date;
+                maxWeightWorkout = workout;
+              }
+
+              // Check for max reps
+              if (set.reps > maxReps || (set.reps === maxReps && set.weight > maxRepsWeight)) {
+                maxReps = set.reps;
+                maxRepsWeight = set.weight;
+                maxRepsDate = workout.date;
+              }
+            });
+
+            // Check for max volume
+            if (totalVolume > maxVolume) {
+              maxVolume = totalVolume;
+              maxVolumeDate = workout.date;
+            }
+          });
+
+          prs.push({
+            exercise: exercise,
+            displayName: workouts[0].lift_name,
+            maxWeight: maxWeight,
+            maxWeightDate: maxWeightDate,
+            maxVolume: maxVolume,
+            maxVolumeDate: maxVolumeDate,
+            maxReps: maxReps,
+            maxRepsWeight: maxRepsWeight,
+            maxRepsDate: maxRepsDate,
+            totalWorkouts: workouts.length
+          });
+        }
+
+        // Sort by max weight
+        prs.sort((a, b) => b.maxWeight - a.maxWeight);
+
+        displayPRs(prs);
+        return prs;
+      } catch (error) {
+        console.error('Error calculating PRs:', error);
+        document.getElementById('prList').innerHTML = '<p style="color: #ef4444;">Error loading PRs</p>';
+      }
+    }
+
+    // Display Personal Records
+    function displayPRs(prs) {
+      const prList = document.getElementById('prList');
+
+      if (prs.length === 0) {
+        prList.innerHTML = '<div class="empty-state"><p>No personal records yet. Start lifting!</p></div>';
+        return;
+      }
+
+      // Calculate stats
+      const now = new Date();
+      const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+
+      let weekPRs = 0;
+      let monthPRs = 0;
+
+      prs.forEach(pr => {
+        const prDate = new Date(pr.maxWeightDate);
+        if (prDate >= weekAgo) weekPRs++;
+        if (prDate >= monthAgo) monthPRs++;
+      });
+
+      document.getElementById('totalPRs').textContent = prs.length;
+      document.getElementById('monthPRs').textContent = monthPRs;
+      document.getElementById('weekPRs').textContent = weekPRs;
+
+      // Display top PRs
+      const topPRs = prs.slice(0, 10);
+      prList.innerHTML = topPRs.map(pr => `
+        <div class="pr-item">
+          <strong>🏋️ ${pr.displayName}</strong>
+          <div style="margin-top: 5px; font-size: 14px;">
+            <span style="color: #6b7280;">Max Weight:</span> <strong>${pr.maxWeight} lbs</strong> (${formatDate(pr.maxWeightDate)})
+            ${pr.maxReps > 1 ? `<br><span style="color: #6b7280;">Best Set:</span> ${pr.maxReps} reps × ${pr.maxRepsWeight} lbs` : ''}
+            <br><span style="color: #6b7280;">Total Volume PR:</span> ${pr.maxVolume.toLocaleString()} lbs
+            <br><span style="color: #6b7280;">Workouts:</span> ${pr.totalWorkouts}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Initialize charts
+    async function initializeCharts() {
+      const ctx = document.getElementById('progressChart');
+      if (!ctx) return;
+
+      progressChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Progress',
+            data: [],
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      // Load exercises for dropdown
+      await loadExerciseList();
+      await updateCharts();
+    }
+
+    // Load exercise list
+    async function loadExerciseList() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        const exercises = new Set();
+        entries.forEach(entry => {
+          if (entry.type === 'lift' && entry.lift_name) {
+            exercises.add(entry.lift_name);
+          }
+        });
+
+        const exerciseSelect = document.getElementById('exerciseSelect');
+        if (exercises.size === 0) {
+          exerciseSelect.innerHTML = '<option value="">No exercises found</option>';
+        } else {
+          const sortedExercises = Array.from(exercises).sort();
+          exerciseSelect.innerHTML = sortedExercises.map(ex =>
+            `<option value="${ex}">${ex}</option>`
+          ).join('');
+        }
+      } catch (error) {
+        console.error('Error loading exercises:', error);
+      }
+    }
+
+    // Update charts based on selection
+    async function updateCharts() {
+      const chartType = document.getElementById('chartType').value;
+      const exerciseSelect = document.getElementById('exerciseSelect');
+      const exerciseContainer = document.getElementById('exerciseSelectContainer');
+
+      // Show/hide exercise selector based on chart type
+      if (chartType === 'weight' || chartType === 'volume') {
+        exerciseContainer.style.display = 'block';
+      } else {
+        exerciseContainer.style.display = 'none';
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        // Filter by time range
+        const cutoffDate = getTimeRangeCutoff();
+        const filtered = entries.filter(e => {
+          if (currentTimeRange === 'all') return true;
+          return new Date(e.date) >= cutoffDate;
+        });
+
+        if (chartType === 'weight') {
+          updateWeightChart(filtered, exerciseSelect.value);
+        } else if (chartType === 'volume') {
+          updateVolumeChart(filtered, exerciseSelect.value);
+        } else if (chartType === 'cardio') {
+          updateCardioChart(filtered);
+        } else if (chartType === 'frequency') {
+          updateFrequencyChart(filtered);
+        }
+      } catch (error) {
+        console.error('Error updating charts:', error);
+      }
+    }
+
+    // Update weight progression chart
+    function updateWeightChart(entries, exercise) {
+      if (!exercise) return;
+
+      const workouts = entries
+        .filter(e => e.type === 'lift' && e.lift_name === exercise)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const labels = [];
+      const maxWeights = [];
+      const avgWeights = [];
+
+      workouts.forEach(workout => {
+        const sets = workout.sets || [];
+        if (sets.length === 0) return;
+
+        const weights = sets.map(s => s.weight);
+        const maxWeight = Math.max(...weights);
+        const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length;
+
+        labels.push(formatDate(workout.date));
+        maxWeights.push(maxWeight);
+        avgWeights.push(avgWeight.toFixed(1));
+      });
+
+      progressChart.data.labels = labels;
+      progressChart.data.datasets = [
+        {
+          label: 'Max Weight (lbs)',
+          data: maxWeights,
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Avg Weight (lbs)',
+          data: avgWeights,
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          tension: 0.3,
+          fill: true
+        }
+      ];
+      progressChart.options.scales.y.title = { display: true, text: 'Weight (lbs)' };
+      progressChart.update();
+    }
+
+    // Update volume chart
+    function updateVolumeChart(entries, exercise) {
+      if (!exercise) return;
+
+      const workouts = entries
+        .filter(e => e.type === 'lift' && e.lift_name === exercise)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const labels = [];
+      const volumes = [];
+
+      workouts.forEach(workout => {
+        const sets = workout.sets || [];
+        const totalVolume = sets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+
+        labels.push(formatDate(workout.date));
+        volumes.push(totalVolume);
+      });
+
+      progressChart.data.labels = labels;
+      progressChart.data.datasets = [{
+        label: 'Total Volume (lbs)',
+        data: volumes,
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        tension: 0.3,
+        fill: true
+      }];
+      progressChart.options.scales.y.title = { display: true, text: 'Volume (lbs)' };
+      progressChart.update();
+    }
+
+    // Update cardio chart
+    function updateCardioChart(entries) {
+      const cardioWorkouts = entries
+        .filter(e => e.type === 'cardio')
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const labels = [];
+      const distances = [];
+      const durations = [];
+
+      cardioWorkouts.forEach(workout => {
+        labels.push(formatDate(workout.date));
+        distances.push(workout.distance || 0);
+        durations.push(workout.duration || 0);
+      });
+
+      progressChart.data.labels = labels;
+      progressChart.data.datasets = [
+        {
+          label: 'Distance (miles)',
+          data: distances,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          tension: 0.3,
+          fill: true,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Duration (min)',
+          data: durations,
+          borderColor: '#06b6d4',
+          backgroundColor: 'rgba(6, 182, 212, 0.1)',
+          tension: 0.3,
+          fill: true,
+          yAxisID: 'y1'
+        }
+      ];
+      progressChart.options.scales = {
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left',
+          title: { display: true, text: 'Distance (miles)' }
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          title: { display: true, text: 'Duration (min)' },
+          grid: {
+            drawOnChartArea: false
+          }
+        }
+      };
+      progressChart.update();
+    }
+
+    // Update frequency chart
+    function updateFrequencyChart(entries) {
+      // Group by date
+      const workoutsByDate = {};
+      entries.forEach(entry => {
+        const date = entry.date;
+        if (!workoutsByDate[date]) {
+          workoutsByDate[date] = { lift: 0, cardio: 0, bjj: 0 };
+        }
+        workoutsByDate[date][entry.type]++;
+      });
+
+      // Sort by date
+      const sorted = Object.entries(workoutsByDate).sort((a, b) => new Date(a[0]) - new Date(b[0]));
+
+      const labels = sorted.map(([date]) => formatDate(date));
+      const liftCounts = sorted.map(([_, counts]) => counts.lift);
+      const cardioCounts = sorted.map(([_, counts]) => counts.cardio);
+      const bjjCounts = sorted.map(([_, counts]) => counts.bjj);
+
+      progressChart.data.labels = labels;
+      progressChart.data.datasets = [
+        {
+          label: 'Lifting',
+          data: liftCounts,
+          backgroundColor: '#6366f1',
+          stack: 'Stack 0'
+        },
+        {
+          label: 'Cardio',
+          data: cardioCounts,
+          backgroundColor: '#10b981',
+          stack: 'Stack 0'
+        },
+        {
+          label: 'BJJ',
+          data: bjjCounts,
+          backgroundColor: '#f59e0b',
+          stack: 'Stack 0'
+        }
+      ];
+      progressChart.type = 'bar';
+      progressChart.options.scales = {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Workouts' },
+          ticks: { stepSize: 1 }
+        }
+      };
+      progressChart.update();
+      progressChart.type = 'line'; // Reset for next update
+    }
+
+    // Set time range filter
+    function setTimeRange(range) {
+      currentTimeRange = range;
+
+      // Update button states
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      updateCharts();
+    }
+
+    // Get cutoff date based on time range
+    function getTimeRangeCutoff() {
+      const now = new Date();
+      if (currentTimeRange === 'all') return new Date(0);
+      const days = parseInt(currentTimeRange);
+      return new Date(now - days * 24 * 60 * 60 * 1000);
+    }
+
+    // Check for new PRs when adding workout
+    async function checkForNewPR(workoutData) {
+      if (workoutData.type !== 'lift') return;
+
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        const exerciseName = workoutData.lift_name.toLowerCase();
+        const previousWorkouts = entries.filter(e =>
+          e.type === 'lift' &&
+          e.lift_name &&
+          e.lift_name.toLowerCase() === exerciseName &&
+          e.date < workoutData.date
+        );
+
+        if (previousWorkouts.length === 0) {
+          // First time doing this exercise
+          showNotification(`🎉 New Exercise! First time doing ${workoutData.lift_name}!`, 'success');
+          return;
+        }
+
+        // Calculate max weight from new workout
+        const newSets = workoutData.sets || [];
+        const newMaxWeight = Math.max(...newSets.map(s => s.weight));
+        const newTotalVolume = newSets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+
+        // Calculate previous best
+        let prevMaxWeight = 0;
+        let prevMaxVolume = 0;
+
+        previousWorkouts.forEach(workout => {
+          const sets = workout.sets || [];
+          const maxWeight = Math.max(...sets.map(s => s.weight));
+          const volume = sets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+
+          if (maxWeight > prevMaxWeight) prevMaxWeight = maxWeight;
+          if (volume > prevMaxVolume) prevMaxVolume = volume;
+        });
+
+        // Check for PRs
+        let prMessages = [];
+        if (newMaxWeight > prevMaxWeight) {
+          prMessages.push(`Weight PR: ${newMaxWeight} lbs (prev: ${prevMaxWeight} lbs)`);
+        }
+        if (newTotalVolume > prevMaxVolume) {
+          prMessages.push(`Volume PR: ${newTotalVolume.toLocaleString()} lbs (prev: ${prevMaxVolume.toLocaleString()} lbs)`);
+        }
+
+        if (prMessages.length > 0) {
+          showNotification(`🏆 NEW PR on ${workoutData.lift_name}! ${prMessages.join(' • ')}`, 'success');
+        }
+      } catch (error) {
+        console.error('Error checking for PR:', error);
+      }
+    }
+
+    // Initialize PR tracking and charts on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        calculatePRs();
+        initializeCharts();
+      }, 1000);
+    });
+  </script>
+
+  <!-- Import Modal -->
+  <div id="importModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🤖 AI Workout Generator & Import</h2>
+        <button class="close-btn" onclick="closeImportModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <p style="margin-bottom: 15px;">Generate a workout plan with AI or paste your own JSON.</p>
+
+        <!-- AI Generation Section -->
+        <div style="background: #f0f9ff; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #3b82f6;">
+          <h3 style="margin-top: 0; color: #1e40af;">🤖 AI Workout Generator</h3>
+
+          <div class="form-group">
+            <label for="apiKey">API Key (OpenAI, Claude, etc.)</label>
+            <input type="password" id="apiKey" placeholder="sk-..." style="font-family: monospace;">
+            <small style="color: #6b7280; display: block; margin-top: 5px;">
+              Your key is stored locally and never sent to our servers
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="aiProvider">AI Provider</label>
+            <select id="aiProvider">
+              <option value="openai">OpenAI (GPT-4)</option>
+              <option value="anthropic">Anthropic (Claude)</option>
+              <option value="custom">Custom Endpoint</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="customEndpointGroup" style="display: none;">
+            <label for="customEndpoint">API Endpoint URL</label>
+            <input type="url" id="customEndpoint" placeholder="https://api.example.com/v1/completions">
+          </div>
+
+          <div class="form-group">
+            <label for="workoutPrompt">Describe Your Workout</label>
+            <textarea id="workoutPrompt" rows="3" placeholder="E.g., Push day focusing on chest and shoulders. I can bench 185 lbs for 8 reps. Include 5 exercises with progressive overload."></textarea>
+          </div>
+
+          <button onclick="generateWithAI()" style="background: #3b82f6; width: 100%;">
+            🪄 Generate Workout Plan
+          </button>
+
+          <div id="aiStatus" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="importDate">Workout Date</label>
+          <input type="date" id="importDate" style="margin-bottom: 15px;">
+        </div>
+
+        <div class="form-group">
+          <label for="jsonInput">JSON Workout Plan</label>
+          <textarea id="jsonInput" rows="10" placeholder='Paste your JSON here or generate one with AI above...'></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button onclick="importWorkout()">Import & Add Workouts</button>
+          <button onclick="importAsTemplate()" style="background: #10b981;">Import as Template</button>
+        </div>
+
+        <div id="importStatus" style="margin-top: 15px;"></div>
+      </div>
+
+      <details style="margin-top: 20px; padding: 0 24px 24px;">
+        <summary style="cursor: pointer; color: #6366f1;">📋 JSON Format Guide</summary>
+        <div style="margin-top: 10px; padding: 15px; background: #f9fafb; border-radius: 8px;">
+          <h4>Weight Training Format:</h4>
+          <pre style="background: #1f2937; color: #f3f4f6; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 13px;">{
+  "session": "Push Day",
+  "type": "lift",
+  "exercises": [
+    {
+      "name": "Bench Press",
+      "sets": [
+        {"reps": 8, "weight": 135},
+        {"reps": 6, "weight": 155}
+      ],
+      "rpe": 8
+    },
+    {
+      "name": "Shoulder Press",
+      "sets": [
+        {"reps": 10, "weight": 95},
+        {"reps": 8, "weight": 105}
+      ]
+    }
+  ],
+  "notes": "Deload week"
+}</pre>
+
+          <h4 style="margin-top: 15px;">Cardio Format:</h4>
+          <pre style="background: #1f2937; color: #f3f4f6; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 13px;">{
+  "session": "Morning Run",
+  "type": "cardio",
+  "modality": "Running",
+  "duration": 30,
+  "distance": 3.5,
+  "target_hr": 145
+}</pre>
+
+          <h4 style="margin-top: 15px;">BJJ Format:</h4>
+          <pre style="background: #1f2937; color: #f3f4f6; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 13px;">{
+  "session": "Competition Prep",
+  "type": "bjj",
+  "technique": "Guard Passing",
+  "rounds": 8,
+  "round_length": 5
+}</pre>
+        </div>
+      </details>
+    </div>
+  </div>
+
+</body>
+</html>
