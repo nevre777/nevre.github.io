@@ -325,7 +325,47 @@
       font-size: 13px;
       color: #6b7280;
     }
+
+    /* Export/Import buttons */
+    .export-btn {
+      background: #14b8a6;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+
+    .export-btn:hover {
+      background: #0d9488;
+    }
+
+    .import-btn {
+      background: #f59e0b;
+    }
+
+    .import-btn:hover {
+      background: #d97706;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
   <div class="header">
@@ -433,6 +473,35 @@
 
       <button type="submit">Add Workout</button>
     </form>
+  </div>
+
+  <div class="card">
+    <h2>💾 Export / Import Data</h2>
+    <p style="color: #6b7280; margin-bottom: 15px;">Backup your workout data or import from other sources</p>
+
+    <div style="margin-bottom: 20px;">
+      <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 10px;">📤 Export Workouts</h3>
+      <div class="button-group">
+        <button onclick="exportToJSON()" class="export-btn">📄 Export as JSON</button>
+        <button onclick="exportToCSV()" class="export-btn">📊 Export as CSV</button>
+        <button onclick="exportToPDF()" class="export-btn">📑 Export as PDF</button>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="font-size: 16px; color: #1f2937; margin-bottom: 10px;">📥 Import Workouts</h3>
+      <div class="button-group">
+        <div class="file-input-wrapper">
+          <button class="import-btn">📄 Import from CSV</button>
+          <input type="file" id="csvImport" accept=".csv" onchange="importFromCSV(event)">
+        </div>
+        <div class="file-input-wrapper">
+          <button class="import-btn">📄 Import from JSON</button>
+          <input type="file" id="jsonImport" accept=".json" onchange="importFromJSON(event)">
+        </div>
+      </div>
+      <div id="importStatus" style="margin-top: 10px;"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -1112,6 +1181,404 @@ For BJJ use: {"type": "bjj", "technique": "focus", "rounds": number, "round_leng
         console.error('Template error:', error);
         statusDiv.innerHTML = `<p style="color: #ef4444;">❌ Error: Invalid JSON format</p>`;
       }
+    }
+
+    // ============ EXPORT/IMPORT FUNCTIONS ============
+
+    // Export all workouts to JSON
+    async function exportToJSON() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        const dataStr = JSON.stringify(entries, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `workout-data-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showNotification('✅ JSON export complete!', 'success');
+      } catch (error) {
+        console.error('Export error:', error);
+        showNotification('❌ Export failed: ' + error.message, 'error');
+      }
+    }
+
+    // Export all workouts to CSV
+    async function exportToCSV() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        // CSV Headers
+        const headers = [
+          'ID', 'Type', 'Date', 'Session Name', 'Notes',
+          'Lift Name', 'Sets (JSON)', 'Unit', 'RPE',
+          'Modality', 'Duration (min)', 'Distance', 'Distance Unit', 'Avg HR',
+          'Technique', 'Rounds', 'Round Length (min)',
+          'Created At'
+        ];
+
+        // Convert entries to CSV rows
+        const rows = entries.map(entry => {
+          return [
+            entry.id || '',
+            entry.type || '',
+            entry.date || '',
+            entry.session_name || '',
+            entry.notes ? `"${entry.notes.replace(/"/g, '""')}"` : '',
+            entry.lift_name || '',
+            entry.sets ? `"${JSON.stringify(entry.sets).replace(/"/g, '""')}"` : '',
+            entry.unit || '',
+            entry.rpe || '',
+            entry.modality || '',
+            entry.duration || '',
+            entry.distance || '',
+            entry.distance_unit || '',
+            entry.avg_hr || '',
+            entry.technique || '',
+            entry.rounds || '',
+            entry.round_length || '',
+            entry.created_at || ''
+          ].join(',');
+        });
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `workout-data-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showNotification(`✅ CSV export complete! (${entries.length} workouts)`, 'success');
+      } catch (error) {
+        console.error('CSV export error:', error);
+        showNotification('❌ CSV export failed: ' + error.message, 'error');
+      }
+    }
+
+    // Export all workouts to PDF
+    async function exportToPDF() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        let yPos = 20;
+        const pageHeight = doc.internal.pageSize.height;
+        const margin = 15;
+        const lineHeight = 7;
+
+        // Title
+        doc.setFontSize(20);
+        doc.setFont(undefined, 'bold');
+        doc.text('Workout Tracker Pro - Export', margin, yPos);
+        yPos += 10;
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, yPos);
+        yPos += 10;
+
+        doc.text(`Total Workouts: ${entries.length}`, margin, yPos);
+        yPos += 15;
+
+        // Workouts
+        doc.setFontSize(12);
+
+        entries.forEach((entry, index) => {
+          // Check if we need a new page
+          if (yPos > pageHeight - 40) {
+            doc.addPage();
+            yPos = 20;
+          }
+
+          // Workout header
+          doc.setFont(undefined, 'bold');
+          const icon = entry.type === 'lift' ? '🏋️' : entry.type === 'cardio' ? '🏃' : '🥋';
+          doc.text(`${icon} ${getEntryTitle(entry)}`, margin, yPos);
+          yPos += lineHeight;
+
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(10);
+
+          // Date and session
+          doc.text(`Date: ${entry.date}`, margin + 5, yPos);
+          if (entry.session_name) {
+            doc.text(`Session: ${entry.session_name}`, margin + 60, yPos);
+          }
+          yPos += lineHeight;
+
+          // Type-specific details
+          if (entry.type === 'lift') {
+            const sets = entry.sets || [];
+            doc.text(`Sets: ${sets.length}`, margin + 5, yPos);
+            const totalVolume = sets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+            doc.text(`Total Volume: ${totalVolume} lbs`, margin + 60, yPos);
+            yPos += lineHeight;
+
+            sets.forEach((set, idx) => {
+              doc.text(`  Set ${idx + 1}: ${set.reps} reps × ${set.weight} lbs`, margin + 5, yPos);
+              yPos += lineHeight;
+            });
+
+            if (entry.rpe) {
+              doc.text(`RPE: ${entry.rpe}/10`, margin + 5, yPos);
+              yPos += lineHeight;
+            }
+          } else if (entry.type === 'cardio') {
+            doc.text(`Activity: ${entry.modality || 'N/A'}`, margin + 5, yPos);
+            doc.text(`Duration: ${entry.duration || 0} min`, margin + 60, yPos);
+            yPos += lineHeight;
+
+            if (entry.distance) {
+              doc.text(`Distance: ${entry.distance} ${entry.distance_unit || 'miles'}`, margin + 5, yPos);
+              yPos += lineHeight;
+            }
+
+            if (entry.avg_hr) {
+              doc.text(`Avg HR: ${entry.avg_hr} bpm`, margin + 5, yPos);
+              yPos += lineHeight;
+            }
+          } else if (entry.type === 'bjj') {
+            doc.text(`Technique: ${entry.technique || 'N/A'}`, margin + 5, yPos);
+            yPos += lineHeight;
+            doc.text(`Rounds: ${entry.rounds || 0} × ${entry.round_length || 5} min`, margin + 5, yPos);
+            yPos += lineHeight;
+          }
+
+          // Notes
+          if (entry.notes) {
+            doc.setFont(undefined, 'italic');
+            const splitNotes = doc.splitTextToSize(`Notes: ${entry.notes}`, 180);
+            doc.text(splitNotes, margin + 5, yPos);
+            yPos += lineHeight * splitNotes.length;
+            doc.setFont(undefined, 'normal');
+          }
+
+          yPos += 5; // Space between entries
+          doc.setFontSize(12);
+        });
+
+        // Save PDF
+        doc.save(`workout-data-${new Date().toISOString().split('T')[0]}.pdf`);
+        showNotification(`✅ PDF export complete! (${entries.length} workouts)`, 'success');
+      } catch (error) {
+        console.error('PDF export error:', error);
+        showNotification('❌ PDF export failed: ' + error.message, 'error');
+      }
+    }
+
+    // Import workouts from CSV
+    async function importFromCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const text = e.target.result;
+          const lines = text.split('\n');
+
+          // Skip header
+          const dataLines = lines.slice(1).filter(line => line.trim());
+
+          let successCount = 0;
+          let errorCount = 0;
+
+          const statusDiv = document.getElementById('importStatus');
+          statusDiv.innerHTML = '<p style="color: #3b82f6;">Importing workouts from CSV...</p>';
+
+          for (const line of dataLines) {
+            try {
+              const values = parseCSVLine(line);
+
+              if (!values[1] || !values[2]) continue; // Skip if no type or date
+
+              const data = {
+                type: values[1],
+                date: values[2],
+                session_name: values[3] || null,
+                notes: values[4] || null,
+                lift_name: values[5] || null,
+                sets: values[6] ? JSON.parse(values[6]) : null,
+                unit: values[7] || null,
+                rpe: values[8] ? parseInt(values[8]) : null,
+                modality: values[9] || null,
+                duration: values[10] ? parseInt(values[10]) : null,
+                distance: values[11] ? parseFloat(values[11]) : null,
+                distance_unit: values[12] || null,
+                avg_hr: values[13] ? parseInt(values[13]) : null,
+                technique: values[14] || null,
+                rounds: values[15] ? parseInt(values[15]) : null,
+                round_length: values[16] ? parseInt(values[16]) : null
+              };
+
+              const response = await fetch(`${API_URL}/entries`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+
+              if (response.ok) {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } catch (error) {
+              console.error('Error importing line:', error);
+              errorCount++;
+            }
+          }
+
+          statusDiv.innerHTML = `
+            <p style="color: #10b981;">
+              ✅ Import complete! Added ${successCount} workouts.
+              ${errorCount > 0 ? `<br><span style="color: #ef4444;">${errorCount} failed.</span>` : ''}
+            </p>
+          `;
+
+          // Reload workouts
+          setTimeout(() => {
+            loadWorkouts();
+            checkConnection();
+            statusDiv.innerHTML = '';
+          }, 3000);
+
+        } catch (error) {
+          console.error('CSV import error:', error);
+          document.getElementById('importStatus').innerHTML =
+            `<p style="color: #ef4444;">❌ Import failed: ${error.message}</p>`;
+        }
+      };
+
+      reader.readAsText(file);
+      event.target.value = ''; // Reset file input
+    }
+
+    // Import workouts from JSON
+    async function importFromJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const text = e.target.result;
+          const entries = JSON.parse(text);
+
+          if (!Array.isArray(entries)) {
+            throw new Error('JSON must contain an array of workouts');
+          }
+
+          let successCount = 0;
+          let errorCount = 0;
+
+          const statusDiv = document.getElementById('importStatus');
+          statusDiv.innerHTML = '<p style="color: #3b82f6;">Importing workouts from JSON...</p>';
+
+          for (const entry of entries) {
+            try {
+              // Remove ID and created_at if present (we'll generate new ones)
+              const { id, created_at, ...data } = entry;
+
+              const response = await fetch(`${API_URL}/entries`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+
+              if (response.ok) {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } catch (error) {
+              console.error('Error importing entry:', error);
+              errorCount++;
+            }
+          }
+
+          statusDiv.innerHTML = `
+            <p style="color: #10b981;">
+              ✅ Import complete! Added ${successCount} workouts.
+              ${errorCount > 0 ? `<br><span style="color: #ef4444;">${errorCount} failed.</span>` : ''}
+            </p>
+          `;
+
+          // Reload workouts
+          setTimeout(() => {
+            loadWorkouts();
+            checkConnection();
+            statusDiv.innerHTML = '';
+          }, 3000);
+
+        } catch (error) {
+          console.error('JSON import error:', error);
+          document.getElementById('importStatus').innerHTML =
+            `<p style="color: #ef4444;">❌ Import failed: ${error.message}</p>`;
+        }
+      };
+
+      reader.readAsText(file);
+      event.target.value = ''; // Reset file input
+    }
+
+    // Helper function to parse CSV line (handles quoted fields)
+    function parseCSVLine(line) {
+      const values = [];
+      let current = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') {
+            current += '"';
+            i++; // Skip next quote
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          values.push(current);
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      values.push(current); // Add last value
+
+      return values;
+    }
+
+    // Helper function to show notifications
+    function showNotification(message, type) {
+      const statusDiv = document.getElementById('status');
+      const originalContent = statusDiv.innerHTML;
+      const originalClass = statusDiv.className;
+
+      statusDiv.className = `status ${type}`;
+      statusDiv.innerHTML = message;
+
+      setTimeout(() => {
+        statusDiv.className = originalClass;
+        statusDiv.innerHTML = originalContent;
+      }, 3000);
     }
   </script>
 
