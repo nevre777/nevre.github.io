@@ -364,8 +364,110 @@
       height: 100%;
       cursor: pointer;
     }
+
+    /* Charts & PR Tracking */
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin: 20px 0;
+    }
+
+    .pr-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .pr-item {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+    }
+
+    .pr-item strong {
+      color: #92400e;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #6366f1;
+      display: block;
+      margin: 5px 0;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: #e5e7eb;
+      color: #374151;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      background: #d1d5db;
+    }
+
+    .filter-btn.active {
+      background: #6366f1;
+      color: white;
+    }
+
+    select.chart-select {
+      padding: 8px 12px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div class="header">
@@ -501,6 +603,61 @@
         </div>
       </div>
       <div id="importStatus" style="margin-top: 10px;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏆 Personal Records</h2>
+    <p style="color: #6b7280; margin-bottom: 15px;">Your best lifts and achievements</p>
+
+    <div class="stat-grid" id="prStats">
+      <div class="stat-card">
+        <span class="stat-label">Total PRs</span>
+        <span class="stat-value" id="totalPRs">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">This Month</span>
+        <span class="stat-value" id="monthPRs">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">This Week</span>
+        <span class="stat-value" id="weekPRs">0</span>
+      </div>
+    </div>
+
+    <div id="prList">Loading personal records...</div>
+  </div>
+
+  <div class="card">
+    <h2>📈 Progress Charts</h2>
+    <p style="color: #6b7280; margin-bottom: 15px;">Visualize your fitness journey</p>
+
+    <div style="margin-bottom: 20px;">
+      <label for="chartType" style="display: block; margin-bottom: 8px; font-weight: 500;">Chart Type:</label>
+      <select id="chartType" class="chart-select" onchange="updateCharts()">
+        <option value="weight">Weight Progression (Lifts)</option>
+        <option value="volume">Total Volume (Lifts)</option>
+        <option value="cardio">Cardio Progress</option>
+        <option value="frequency">Workout Frequency</option>
+      </select>
+    </div>
+
+    <div id="exerciseSelectContainer" style="margin-bottom: 20px; display: block;">
+      <label for="exerciseSelect" style="display: block; margin-bottom: 8px; font-weight: 500;">Select Exercise:</label>
+      <select id="exerciseSelect" class="chart-select" onchange="updateCharts()">
+        <option value="">Loading exercises...</option>
+      </select>
+    </div>
+
+    <div class="filter-buttons">
+      <button class="filter-btn active" onclick="setTimeRange('30')">Last 30 Days</button>
+      <button class="filter-btn" onclick="setTimeRange('90')">Last 3 Months</button>
+      <button class="filter-btn" onclick="setTimeRange('180')">Last 6 Months</button>
+      <button class="filter-btn" onclick="setTimeRange('all')">All Time</button>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="progressChart"></canvas>
     </div>
   </div>
 
@@ -731,9 +888,14 @@
           `;
           setCount = 1;
 
-          // Reload workouts
+          // Check for PRs
+          await checkForNewPR(data);
+
+          // Reload workouts, PRs, and charts
           loadWorkouts();
           checkConnection();
+          calculatePRs();
+          updateCharts();
         } else {
           const error = await response.json();
           alert('Error: ' + error.error);
@@ -755,6 +917,8 @@
         if (response.ok) {
           loadWorkouts();
           checkConnection();
+          calculatePRs();
+          updateCharts();
         } else {
           alert('Error deleting workout');
         }
@@ -1031,6 +1195,8 @@ For BJJ use: {"type": "bjj", "technique": "focus", "rounds": number, "round_leng
           // Reload workouts and close modal after delay
           setTimeout(() => {
             loadWorkouts();
+            calculatePRs();
+            updateCharts();
             closeImportModal();
           }, 2000);
 
@@ -1058,6 +1224,8 @@ For BJJ use: {"type": "bjj", "technique": "focus", "rounds": number, "round_leng
             statusDiv.innerHTML = '<p style="color: #10b981;">✅ Cardio workout imported!</p>';
             setTimeout(() => {
               loadWorkouts();
+              calculatePRs();
+              updateCharts();
               closeImportModal();
             }, 1500);
           } else {
@@ -1086,6 +1254,8 @@ For BJJ use: {"type": "bjj", "technique": "focus", "rounds": number, "round_leng
             statusDiv.innerHTML = '<p style="color: #10b981;">✅ BJJ session imported!</p>';
             setTimeout(() => {
               loadWorkouts();
+              calculatePRs();
+              updateCharts();
               closeImportModal();
             }, 1500);
           } else {
@@ -1455,6 +1625,8 @@ For BJJ use: {"type": "bjj", "technique": "focus", "rounds": number, "round_leng
           setTimeout(() => {
             loadWorkouts();
             checkConnection();
+            calculatePRs();
+            updateCharts();
             statusDiv.innerHTML = '';
           }, 3000);
 
@@ -1523,6 +1695,8 @@ For BJJ use: {"type": "bjj", "technique": "focus", "rounds": number, "round_leng
           setTimeout(() => {
             loadWorkouts();
             checkConnection();
+            calculatePRs();
+            updateCharts();
             statusDiv.innerHTML = '';
           }, 3000);
 
@@ -1580,6 +1754,527 @@ For BJJ use: {"type": "bjj", "technique": "focus", "rounds": number, "round_leng
         statusDiv.innerHTML = originalContent;
       }, 3000);
     }
+
+    // ============ PR TRACKING & CHARTS ============
+
+    let progressChart = null;
+    let currentTimeRange = '30'; // days
+    let allWorkouts = [];
+
+    // Calculate Personal Records
+    async function calculatePRs() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+        allWorkouts = entries;
+
+        // Filter only lift entries
+        const liftEntries = entries.filter(e => e.type === 'lift');
+
+        // Group by exercise name
+        const exerciseGroups = {};
+        liftEntries.forEach(entry => {
+          if (!entry.lift_name) return;
+          const name = entry.lift_name.toLowerCase();
+          if (!exerciseGroups[name]) {
+            exerciseGroups[name] = [];
+          }
+          exerciseGroups[name].push(entry);
+        });
+
+        // Calculate PRs for each exercise
+        const prs = [];
+        for (const [exercise, workouts] of Object.entries(exerciseGroups)) {
+          // Find max weight for a single rep
+          let maxWeight = 0;
+          let maxWeightDate = null;
+          let maxWeightWorkout = null;
+
+          // Find max total volume
+          let maxVolume = 0;
+          let maxVolumeDate = null;
+
+          // Find max reps at any weight
+          let maxReps = 0;
+          let maxRepsWeight = 0;
+          let maxRepsDate = null;
+
+          workouts.forEach(workout => {
+            const sets = workout.sets || [];
+            let totalVolume = 0;
+
+            sets.forEach(set => {
+              totalVolume += set.reps * set.weight;
+
+              // Check for max weight
+              if (set.weight > maxWeight) {
+                maxWeight = set.weight;
+                maxWeightDate = workout.date;
+                maxWeightWorkout = workout;
+              }
+
+              // Check for max reps
+              if (set.reps > maxReps || (set.reps === maxReps && set.weight > maxRepsWeight)) {
+                maxReps = set.reps;
+                maxRepsWeight = set.weight;
+                maxRepsDate = workout.date;
+              }
+            });
+
+            // Check for max volume
+            if (totalVolume > maxVolume) {
+              maxVolume = totalVolume;
+              maxVolumeDate = workout.date;
+            }
+          });
+
+          prs.push({
+            exercise: exercise,
+            displayName: workouts[0].lift_name,
+            maxWeight: maxWeight,
+            maxWeightDate: maxWeightDate,
+            maxVolume: maxVolume,
+            maxVolumeDate: maxVolumeDate,
+            maxReps: maxReps,
+            maxRepsWeight: maxRepsWeight,
+            maxRepsDate: maxRepsDate,
+            totalWorkouts: workouts.length
+          });
+        }
+
+        // Sort by max weight
+        prs.sort((a, b) => b.maxWeight - a.maxWeight);
+
+        displayPRs(prs);
+        return prs;
+      } catch (error) {
+        console.error('Error calculating PRs:', error);
+        document.getElementById('prList').innerHTML = '<p style="color: #ef4444;">Error loading PRs</p>';
+      }
+    }
+
+    // Display Personal Records
+    function displayPRs(prs) {
+      const prList = document.getElementById('prList');
+
+      if (prs.length === 0) {
+        prList.innerHTML = '<div class="empty-state"><p>No personal records yet. Start lifting!</p></div>';
+        return;
+      }
+
+      // Calculate stats
+      const now = new Date();
+      const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+
+      let weekPRs = 0;
+      let monthPRs = 0;
+
+      prs.forEach(pr => {
+        const prDate = new Date(pr.maxWeightDate);
+        if (prDate >= weekAgo) weekPRs++;
+        if (prDate >= monthAgo) monthPRs++;
+      });
+
+      document.getElementById('totalPRs').textContent = prs.length;
+      document.getElementById('monthPRs').textContent = monthPRs;
+      document.getElementById('weekPRs').textContent = weekPRs;
+
+      // Display top PRs
+      const topPRs = prs.slice(0, 10);
+      prList.innerHTML = topPRs.map(pr => `
+        <div class="pr-item">
+          <strong>🏋️ ${pr.displayName}</strong>
+          <div style="margin-top: 5px; font-size: 14px;">
+            <span style="color: #6b7280;">Max Weight:</span> <strong>${pr.maxWeight} lbs</strong> (${formatDate(pr.maxWeightDate)})
+            ${pr.maxReps > 1 ? `<br><span style="color: #6b7280;">Best Set:</span> ${pr.maxReps} reps × ${pr.maxRepsWeight} lbs` : ''}
+            <br><span style="color: #6b7280;">Total Volume PR:</span> ${pr.maxVolume.toLocaleString()} lbs
+            <br><span style="color: #6b7280;">Workouts:</span> ${pr.totalWorkouts}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Initialize charts
+    async function initializeCharts() {
+      const ctx = document.getElementById('progressChart');
+      if (!ctx) return;
+
+      progressChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Progress',
+            data: [],
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      // Load exercises for dropdown
+      await loadExerciseList();
+      await updateCharts();
+    }
+
+    // Load exercise list
+    async function loadExerciseList() {
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        const exercises = new Set();
+        entries.forEach(entry => {
+          if (entry.type === 'lift' && entry.lift_name) {
+            exercises.add(entry.lift_name);
+          }
+        });
+
+        const exerciseSelect = document.getElementById('exerciseSelect');
+        if (exercises.size === 0) {
+          exerciseSelect.innerHTML = '<option value="">No exercises found</option>';
+        } else {
+          const sortedExercises = Array.from(exercises).sort();
+          exerciseSelect.innerHTML = sortedExercises.map(ex =>
+            `<option value="${ex}">${ex}</option>`
+          ).join('');
+        }
+      } catch (error) {
+        console.error('Error loading exercises:', error);
+      }
+    }
+
+    // Update charts based on selection
+    async function updateCharts() {
+      const chartType = document.getElementById('chartType').value;
+      const exerciseSelect = document.getElementById('exerciseSelect');
+      const exerciseContainer = document.getElementById('exerciseSelectContainer');
+
+      // Show/hide exercise selector based on chart type
+      if (chartType === 'weight' || chartType === 'volume') {
+        exerciseContainer.style.display = 'block';
+      } else {
+        exerciseContainer.style.display = 'none';
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        // Filter by time range
+        const cutoffDate = getTimeRangeCutoff();
+        const filtered = entries.filter(e => {
+          if (currentTimeRange === 'all') return true;
+          return new Date(e.date) >= cutoffDate;
+        });
+
+        if (chartType === 'weight') {
+          updateWeightChart(filtered, exerciseSelect.value);
+        } else if (chartType === 'volume') {
+          updateVolumeChart(filtered, exerciseSelect.value);
+        } else if (chartType === 'cardio') {
+          updateCardioChart(filtered);
+        } else if (chartType === 'frequency') {
+          updateFrequencyChart(filtered);
+        }
+      } catch (error) {
+        console.error('Error updating charts:', error);
+      }
+    }
+
+    // Update weight progression chart
+    function updateWeightChart(entries, exercise) {
+      if (!exercise) return;
+
+      const workouts = entries
+        .filter(e => e.type === 'lift' && e.lift_name === exercise)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const labels = [];
+      const maxWeights = [];
+      const avgWeights = [];
+
+      workouts.forEach(workout => {
+        const sets = workout.sets || [];
+        if (sets.length === 0) return;
+
+        const weights = sets.map(s => s.weight);
+        const maxWeight = Math.max(...weights);
+        const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length;
+
+        labels.push(formatDate(workout.date));
+        maxWeights.push(maxWeight);
+        avgWeights.push(avgWeight.toFixed(1));
+      });
+
+      progressChart.data.labels = labels;
+      progressChart.data.datasets = [
+        {
+          label: 'Max Weight (lbs)',
+          data: maxWeights,
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Avg Weight (lbs)',
+          data: avgWeights,
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          tension: 0.3,
+          fill: true
+        }
+      ];
+      progressChart.options.scales.y.title = { display: true, text: 'Weight (lbs)' };
+      progressChart.update();
+    }
+
+    // Update volume chart
+    function updateVolumeChart(entries, exercise) {
+      if (!exercise) return;
+
+      const workouts = entries
+        .filter(e => e.type === 'lift' && e.lift_name === exercise)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const labels = [];
+      const volumes = [];
+
+      workouts.forEach(workout => {
+        const sets = workout.sets || [];
+        const totalVolume = sets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+
+        labels.push(formatDate(workout.date));
+        volumes.push(totalVolume);
+      });
+
+      progressChart.data.labels = labels;
+      progressChart.data.datasets = [{
+        label: 'Total Volume (lbs)',
+        data: volumes,
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        tension: 0.3,
+        fill: true
+      }];
+      progressChart.options.scales.y.title = { display: true, text: 'Volume (lbs)' };
+      progressChart.update();
+    }
+
+    // Update cardio chart
+    function updateCardioChart(entries) {
+      const cardioWorkouts = entries
+        .filter(e => e.type === 'cardio')
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const labels = [];
+      const distances = [];
+      const durations = [];
+
+      cardioWorkouts.forEach(workout => {
+        labels.push(formatDate(workout.date));
+        distances.push(workout.distance || 0);
+        durations.push(workout.duration || 0);
+      });
+
+      progressChart.data.labels = labels;
+      progressChart.data.datasets = [
+        {
+          label: 'Distance (miles)',
+          data: distances,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          tension: 0.3,
+          fill: true,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Duration (min)',
+          data: durations,
+          borderColor: '#06b6d4',
+          backgroundColor: 'rgba(6, 182, 212, 0.1)',
+          tension: 0.3,
+          fill: true,
+          yAxisID: 'y1'
+        }
+      ];
+      progressChart.options.scales = {
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left',
+          title: { display: true, text: 'Distance (miles)' }
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          title: { display: true, text: 'Duration (min)' },
+          grid: {
+            drawOnChartArea: false
+          }
+        }
+      };
+      progressChart.update();
+    }
+
+    // Update frequency chart
+    function updateFrequencyChart(entries) {
+      // Group by date
+      const workoutsByDate = {};
+      entries.forEach(entry => {
+        const date = entry.date;
+        if (!workoutsByDate[date]) {
+          workoutsByDate[date] = { lift: 0, cardio: 0, bjj: 0 };
+        }
+        workoutsByDate[date][entry.type]++;
+      });
+
+      // Sort by date
+      const sorted = Object.entries(workoutsByDate).sort((a, b) => new Date(a[0]) - new Date(b[0]));
+
+      const labels = sorted.map(([date]) => formatDate(date));
+      const liftCounts = sorted.map(([_, counts]) => counts.lift);
+      const cardioCounts = sorted.map(([_, counts]) => counts.cardio);
+      const bjjCounts = sorted.map(([_, counts]) => counts.bjj);
+
+      progressChart.data.labels = labels;
+      progressChart.data.datasets = [
+        {
+          label: 'Lifting',
+          data: liftCounts,
+          backgroundColor: '#6366f1',
+          stack: 'Stack 0'
+        },
+        {
+          label: 'Cardio',
+          data: cardioCounts,
+          backgroundColor: '#10b981',
+          stack: 'Stack 0'
+        },
+        {
+          label: 'BJJ',
+          data: bjjCounts,
+          backgroundColor: '#f59e0b',
+          stack: 'Stack 0'
+        }
+      ];
+      progressChart.type = 'bar';
+      progressChart.options.scales = {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Workouts' },
+          ticks: { stepSize: 1 }
+        }
+      };
+      progressChart.update();
+      progressChart.type = 'line'; // Reset for next update
+    }
+
+    // Set time range filter
+    function setTimeRange(range) {
+      currentTimeRange = range;
+
+      // Update button states
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      updateCharts();
+    }
+
+    // Get cutoff date based on time range
+    function getTimeRangeCutoff() {
+      const now = new Date();
+      if (currentTimeRange === 'all') return new Date(0);
+      const days = parseInt(currentTimeRange);
+      return new Date(now - days * 24 * 60 * 60 * 1000);
+    }
+
+    // Check for new PRs when adding workout
+    async function checkForNewPR(workoutData) {
+      if (workoutData.type !== 'lift') return;
+
+      try {
+        const response = await fetch(`${API_URL}/entries`);
+        const entries = await response.json();
+
+        const exerciseName = workoutData.lift_name.toLowerCase();
+        const previousWorkouts = entries.filter(e =>
+          e.type === 'lift' &&
+          e.lift_name &&
+          e.lift_name.toLowerCase() === exerciseName &&
+          e.date < workoutData.date
+        );
+
+        if (previousWorkouts.length === 0) {
+          // First time doing this exercise
+          showNotification(`🎉 New Exercise! First time doing ${workoutData.lift_name}!`, 'success');
+          return;
+        }
+
+        // Calculate max weight from new workout
+        const newSets = workoutData.sets || [];
+        const newMaxWeight = Math.max(...newSets.map(s => s.weight));
+        const newTotalVolume = newSets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+
+        // Calculate previous best
+        let prevMaxWeight = 0;
+        let prevMaxVolume = 0;
+
+        previousWorkouts.forEach(workout => {
+          const sets = workout.sets || [];
+          const maxWeight = Math.max(...sets.map(s => s.weight));
+          const volume = sets.reduce((sum, set) => sum + (set.reps * set.weight), 0);
+
+          if (maxWeight > prevMaxWeight) prevMaxWeight = maxWeight;
+          if (volume > prevMaxVolume) prevMaxVolume = volume;
+        });
+
+        // Check for PRs
+        let prMessages = [];
+        if (newMaxWeight > prevMaxWeight) {
+          prMessages.push(`Weight PR: ${newMaxWeight} lbs (prev: ${prevMaxWeight} lbs)`);
+        }
+        if (newTotalVolume > prevMaxVolume) {
+          prMessages.push(`Volume PR: ${newTotalVolume.toLocaleString()} lbs (prev: ${prevMaxVolume.toLocaleString()} lbs)`);
+        }
+
+        if (prMessages.length > 0) {
+          showNotification(`🏆 NEW PR on ${workoutData.lift_name}! ${prMessages.join(' • ')}`, 'success');
+        }
+      } catch (error) {
+        console.error('Error checking for PR:', error);
+      }
+    }
+
+    // Initialize PR tracking and charts on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        calculatePRs();
+        initializeCharts();
+      }, 1000);
+    });
   </script>
 
   <!-- Import Modal -->
